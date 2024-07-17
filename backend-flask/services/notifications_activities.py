@@ -1,7 +1,14 @@
 from datetime import datetime, timedelta, timezone
+from aws_xray_sdk.core import xray_recorder
 class NotificationsActivities:
   def run():
+    #xray---
+    segment = xray_recorder.begin_segment('notifications_actitivities')
+    subsegment = xray_recorder.begin_subsegment('mock_data')
+
     now = datetime.now(timezone.utc).astimezone()
+    
+
     results = [{
       'uuid': '68f126b0-1ceb-4a33-88be-d90fa7109eee',
       'handle':  'coco',
@@ -23,4 +30,13 @@ class NotificationsActivities:
       }],
     }
     ]
+
+    dict = {
+      "now": now.isoformat(),
+      "results-size": len(results)
+    }
+
+    #xray----
+    subsegment.put_metadata('key', dict, 'namespace')
+    subsegment.put_annotation('key', 'value')
     return results
