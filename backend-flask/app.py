@@ -66,14 +66,14 @@ tracer = trace.get_tracer(__name__)
 
 
 # X-Ray --------------
-xray_url = os.getenv("AWS_XRAY_URL")
-xray_recorder.configure(service='backend-flask', dynamic_naming=xray_url)
+# xray_url = os.getenv("AWS_XRAY_URL")
+# xray_recorder.configure(service='backend-flask', dynamic_naming=xray_url)
 
 app = Flask(__name__)
 
 
 # X-Ray --------------
-XRayMiddleware(app, xray_recorder)
+# XRayMiddleware(app, xray_recorder)
 
 
 # HoneyComb --------------
@@ -163,7 +163,7 @@ def data_home():
 
 
 @app.route("/api/activities/notifications", methods=['GET'])
-@xray_recorder.capture('activities_notification')
+# @xray_recorder.capture('activities_notification')
 def data_notifications():
   data = NotificationsActivities.run()
   return data, 200
