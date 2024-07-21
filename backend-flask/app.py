@@ -13,6 +13,8 @@ import rollbar
 import rollbar.contrib.flask
 from flask import got_request_exception
 
+from lib.cognito_token_verification import FlaskAWSCognitoError, TokenVerifyError, CognitoTokenVerification
+
 
 # Configuring Logger to Use CloudWatch
 # LOGGER = logging.getLogger(__name__)
@@ -58,8 +60,8 @@ processor = BatchSpanProcessor(OTLPSpanExporter())
 provider.add_span_processor(processor)
 
 # Show this in the logs within the backend-flask app (STDOUT)
-simple_processor = SimpleSpanProcessor(ConsoleSpanExporter())
-provider.add_span_processor(simple_processor)
+# simple_processor = SimpleSpanProcessor(ConsoleSpanExporter())
+# provider.add_span_processor(simple_processor)
 
 trace.set_tracer_provider(provider)
 tracer = trace.get_tracer(__name__)
@@ -72,6 +74,12 @@ tracer = trace.get_tracer(__name__)
 app = Flask(__name__)
 
 
+cognito_token_verification = CognitoTokenVerification(
+  user_pool_id = os.getenv("AWS_COGNITO_USER_POOL_ID"),
+  user_pool_client_id= os.getenv("AWS_COGNITO_USER_POOL_CLIENT_ID"), 
+  region = os.getenv("AWS_DEFAULT_REGION") 
+)
+
 # X-Ray --------------
 # XRayMiddleware(app, xray_recorder)
 
@@ -83,11 +91,13 @@ RequestsInstrumentor().instrument()
 frontend = os.getenv('FRONTEND_URL')
 backend = os.getenv('BACKEND_URL')
 origins = [frontend, backend]
+
+
 cors = CORS(
   app, 
   resources={r"/api/*": {"origins": origins}},
-  expose_headers="location,link",
-  allow_headers="content-type,if-modified-since",
+  headers=['Content-Type', 'Authorization'], 
+  expose_headers='Authorization',
   methods="OPTIONS,GET,HEAD,POST"
 )
 
